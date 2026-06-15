@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Syntax Battle</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: Arial, sans-serif;
+            background: #40E0D0;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+        }
+        
+        .screen {
+            display: none;
+            width: 100%;
+            height: 100%;
+            position: fixed;
+            top: 0;
+            left: 0;
+        }
+        
+        .screen.active {
+            display: block;
+        }
+        
+        .center-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            gap: 20px;
+            padding: 20px;
+        }
+        
+        .logo {
+            font-size: 32px;
+            font-weight: bold;
+            color: white;
+            text-align: center;
+        }
+        
+        input {
+            padding: 15px;
+            font-size: 18px;
+            border-radius: 10px;
+            border: 3px solid white;
+            width: 250px;
+            text-align: center;
+        }
+        
+        button {
+            padding: 15px 30px;
+            font-size: 18px;
+            border: none;
+            border-radius: 12px;
+            background: #FFD700;
+            color: #333;
+            font-weight: bold;
+            cursor: pointer;
+            min-width: 200px;
+        }
+        
+        .menu-btn {
+            width: 80%;
+            max-width: 300px;
+            margin: 5px 0;
+        }
+        
+        .back-btn {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            width: 50px;
+            height: 50px;
+            background: white;
+            border-radius: 50%;
+            font-size: 20px;
+            z-index: 100;
+        }
+        
+        .header {
+            background: white;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .levels-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            padding: 10px;
+        }
+        
+        .level-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .game-area {
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .npc {
+            font-size: 60px;
+        }
+        
+        .speech {
+            background: white;
+            padding: 15px;
+            border-radius: 15px;
+            margin: 15px 0;
+        }
+        
+        .code-box {
+            background: #222;
+            color: #0f0;
+            padding: 15px;
+            border-radius: 10px;
+            font-family: monospace;
+            margin: 15px 0;
+            text-align: left;
+        }
+        
+        .choice-btn {
+            background: white;
+            margin: 5px;
+            min-width: 120px;
+        }
+        
+        .duel-box {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin: 10px;
+        }
+        
+        .timer {
+            height: 10px;
+            background: #ddd;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        
+        .timer-bar {
+            height: 100%;
+            background: orange;
+            border-radius: 5px;
+            width: 100%;
+        }
+        
+        .profile-card {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            margin: 15px;
+            text-align: center;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .stat {
+            background: #f0f0f0;
+            padding: 10px;
+            border-radius: 10px;
+        }
+        
+        .shop-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            padding: 10px;
+        }
+        
+        .shop-item {
+            background: white;
+            border-radius: 15px;
+            padding: 15px;
+            text-align: center;
+        }
+        
+        .toast {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #333;
+            color: white;
+            padding: 15px 30px;
+            border-radius: 25px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- NAME -->
+    <div class="screen active" id="scr-name">
+        <div class="center-box">
+            <div class="logo">⚔️ Syntax Battle</div>
+            <input type="text" id="inp-name" placeholder="Твоє ім'я" maxlength="12">
+            <button onclick="saveName()">Поїхали!</button>
+        </div>
+    </div>
+
+    <!-- MENU -->
+    <div class="screen" id="scr-menu">
+        <div class="header">
+            <div>☕ <span id="h-cof">0</span> 🪙 <span id="h-coin">0</span></div>
+            <div></div>
+        </div>
+        <div class="center-box">
+            <div class="logo">⚔️ Syntax Battle</div>
+            <div style="background:white;padding:15px;border-radius:15px;">
+                Привіт, <b id="m-name">Coder</b>!<br>
+                <span id="m-prog">Пройдено 0/2</span>
+            </div>
+            <button class="menu-btn" style="background:#4EC9B0;color:white" onclick="goLevels()">🎓 Навчання</button>
+            <button class="menu-btn" style="background:#FF6B6B;color:white" id="btn-duel" onclick="goDuel()" disabled>🔒 Дуель</button>
+            <button class="menu-btn" style="background:#FFD700" onclick="goProfile()">👤 Профіль</button>
+        </div>
+    </div>
+
+    <!-- LEVELS -->
+    <div class="screen" id="scr-levels">
+        <button class="back-btn" onclick="goMenu()">←</button>
+        <div style="padding-top:70px">
+            <div class="levels-grid" id="grid-levels"></div>
+        </div>
+    </div>
+
+    <!-- GAME -->
+    <div class="screen" id="scr-game">
+        <button class="back-btn" onclick="goLevels()">←</button>
+        <div class="game-area" style="padding-top:70px" id="game-box"></div>
+    </div>
+
+    <!-- DUEL -->
+    <div class="screen" id="scr-duel">
+        <button class="back-btn" onclick="goMenu()">←</button>
+        <div style="padding-top:70px">
+            <div style="display:flex;justify-content:space-around;background:white;padding:15px;margin:10px;border-radius:15px;">
+                <div>
+                    <div style="font-size:40px" id="d-p-ava">👤</div>
+                    <div id="d-p-name">Ти</div>
+                    <div style="font-size:30px;color:orange" id="d-p-sc">0</div>
+                </div>
+                <div style="font-size:30px;font-weight:bold;color:red">VS</div>
+                <div>
+                    <div style="font-size:40px">🐛</div>
+                    <div>Багґі</div>
+                    <div style="font-size:30px;color:orange" id="d-b-sc">0</div>
+                </div>
+            </div>
+            <div class="timer"><div class="timer-bar" id="timer-bar"></div></div>
+            <div id="duel-box"></div>
+        </div>
+    </div>
+
+    <!-- PROFILE -->
+    <div class="screen" id="scr-profile">
+        <button class="back-btn" onclick="goMenu()">←</button>
+        <div style="padding-top:70px">
+            <div class="profile-card">
+                <div style="font-size:60px" id="p-ava">👤</div>
+                <div style="font-size:20px;font-weight:bold" id="p-name">Coder</div>
+                <div>Перемог: <span id="p-win">0</span> | Дуелей: <span id="p-duel">0</span></div>
+                <div class="stats">
+                    <div class="stat">☕ <span id="p-cof">0</span></div>
+                    <div class="stat">🪙 <span id="p-coin">0</span></div>
+                    <div class="stat">🏆 <span id="p-elo">1000</span></div>
+                </div>
+            </div>
+            <h3 style="text-align:center;margin:10px">🛍️ Аватарки</h3>
+            <div class="shop-grid" id="grid-shop"></div>
+            <div style="text-align:center;padding:15px">
+                <button onclick="chName()" style="background:#FF6B35;color:white">✏️ Змінити ім'я (10🪙)</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+<script>
+
+// ===== DATA =====
+var LEVELS = [
+    {
+        id: 1, title: "CSS Привид", npc: "👩‍💻", name: "Аня",
+        lines: ["Привіт! Кнопка зникла!", "Подивись код..."],
+        code: "button {<br>  opacity: <input id='inp1' style='width:50px;background:#333;color:#0f0;border:1px solid #555;padding:3px' value='0' maxlength='3'>;<br>}",
+        ans: "1", hint: "0=невидимо, 1=видимо",
+        rw: {c:10, m:2}
+    },
+    {
+        id: 2, title: "HTML Тег", npc: "👨‍💻", name: "Петро",
+        lines: ["Текст з'їхав!", "Знайди помилку."],
+        code: "&lt;div&gt;Текст&lt;br&gt;&lt;p&gt;Абзац&lt;br&gt;&lt;/div&gt;",
+        ch: ["&lt;/p&gt;", "&lt;/div&gt;", "&lt;p/&gt;", "&lt;div/&gt;"],
+        ans: 0, hint: "Кожен тег треба закрити",
+        rw: {c:10, m:2}
+    }
+];
+
+var AVATARS = [
+    {e:"👤", p:0}, {e:"🐥", p:20}, {e:"🦊", p:30}, {e:"🦄", p:50}, {e:"🤖", p:60}
+];
+
+var DUELS = [
+    {q:"2+'2'=?", ch:["4","22","NaN","8"], a:1},
+    {q:"Тег посилання?", ch:["<link>","<a>","<href>","<url>"], a:1},
+    {q:"CSS червоний?", ch:["color:red","text:red","font:red","red:true"], a:0},
+    {q:"let x=[]; x.length?", ch:["0","1","undefined","null"], a:0}
+];
+
+// ===== STATE =====
+var ST = {name:"", cof:0, coin:0, done:[], win:0, duel:0, ava:"👤", avas:["👤"], elo:1000};
+var curLvl = null;
+var curStep = 0;
+var dSc = {p:0, b:0};
+var dTm = null;
+
+// ===== INIT =====
+function init() {
+    var s = localStorage.getItem("sb");
+    if (s) {
+        ST = JSON.parse(s);
+        show("scr-menu");
+    }
+    upd();
+}
+
+function save() {
+    localStorage.setItem("sb", JSON.stringify(ST));
+}
+
+// ===== NAV =====
+function show(id) {
+    document.querySelectorAll(".screen").forEach(function(el) {
+        el.classList.remove("active");
+    });
+    document.getElementById(id).classList.add("active");
+}
+
+function goMenu() { show("scr-menu"); upd(); }
+function goLevels() { show("scr-levels"); renLevels(); }
+function goProfile() { show("scr-profile"); renProfile(); }
+
+// ===== NAME =====
+function saveName() {
+    var n = document.getElementById("inp-name").value.trim();
+    if (n.length < 2) { toast("Мінімум 2 символи!"); return; }
+    ST.name = n;
+    save();
+    show("scr-menu");
+    upd();
+}
+
+// ===== UPDATE =====
+function upd() {
+    document.getElementById("h-cof").textContent = ST.cof;
+    document.getElementById("h-coin").textContent = ST.coin;
+    document.getElementById("m-name").textContent = ST.name || "Coder";
+    document.getElementById("m-prog").textContent = "Пройдено " + ST.done.length + "/2";
+
+    var b = document.getElementById("btn-duel");
+    if (ST.done.length >= 2) {
+        b.disabled = false;
+        b.textContent = "⚔️ Дуель з ботом";
+        b.style.background = "#FF6B6B";
+    } else {
+        b.disabled = true;
+        b.textContent = "🔒 Дуель (пройди 2 рівні)";
+        b.style.background = "#ccc";
+    }
+}
+
+// ===== LEVELS =====
+function renLevels() {
+    var g = document.getElementById("grid-levels");
+    g.innerHTML = "";
+    LEVELS.forEach(function(l) {
+        var done = ST.done.includes(l.id);
+        var lock = l.id > 1 && !ST.done.includes(l.id - 1);
+        var d = document.createElement("div");
+        d.className = "level-card";
+        if (done) d.style.background = "#d4edda";
+        if (lock) { d.style.opacity = "0.5"; d.style.pointerEvents = "none"; }
+        d.innerHTML = "<div style='font-size:30px'>" + (done ? "✓" : l.id) + "</div>" +
+                      "<div style='font-weight:bold'>" + l.emoji + " " + l.title + "</div>" +
+                      "<div style='font-size:12px;color:#666'>☕" + l.rw.c + " 🪙" + l.rw.m + "</div>";
+        if (!lock) {
+            d.onclick = function() { startLvl(l.id); };
+        }
+        g.appendChild(d);
+    });
+}
+
+// ===== GAME =====
+function startLvl(id) {
+    curLvl = LEVELS.find(function(l) { return l.id == id; });
+    curStep = 0;
+    document.getElementById("game-box").innerHTML = "";
+    show("scr-game");
+    renStep();
+}
+
+function renStep() {
+    var box = document.getElementById("game-box");
+    if (curStep < curLvl.lines.length) {
+        box.innerHTML = "<div class='npc'>" + curLvl.npc + "</div>" +
+                        "<div class='speech'><b style='color:#FF6B35'>" + curLvl.name + ":</b> " + curLvl.lines[curStep] + "</div>" +
+                        "<button onclick='nextStep()'>Далі ➡️</button>";
+    } else {
+        renTask();
+    }
+}
+
+function nextStep() {
+    curStep++;
+    renStep();
+}
+
+function renTask() {
+    var box = document.getElementById("game-box");
+    var h = "<div class='npc'>" + curLvl.npc + "</div>" +
+            "<div class='code-box'>" + curLvl.code + "</div>";
+    if (curLvl.ch) {
+        h += "<div>";
+        curLvl.ch.forEach(function(c, i) {
+            h += "<button class='choice-btn' onclick='chkCh(" + i + ")'>" + c + "</button>";
+        });
+        h += "</div>";
+    } else {
+        h += "<button onclick='chkInp()'>✅ Перевірити</button>" +
+             "<div style='margin-top:10px;color:#666'>💡 " + curLvl.hint + "</div>";
+    }
+    box.innerHTML = h;
+}
+
+function chkCh(i) {
+    var btns = document.querySelectorAll(".choice-btn");
+    var ok = i == curLvl.ans;
+    btns[i].style.background = ok ? "#28a745" : "#dc3545";
+    btns[i].style.color = "white";
+    if (!ok) {
+        btns[curLvl.ans].style.background = "#28a745";
+        btns[curLvl.ans].style.color = "white";
+    }
+    setTimeout(function() {
+        if (ok) winLvl();
+        else toast("Спробуй ще! 💪");
+    }, 800);
+}
+
+function chkInp() {
+    var v = document.getElementById("inp1").value.trim();
+    if (v == curLvl.ans) winLvl();
+    else toast("Ні... " + curLvl.hint);
+}
+
+function winLvl() {
+    if (!ST.done.includes(curLvl.id)) {
+        ST.done.push(curLvl.id);
+        ST.cof += curLvl.rw.c;
+        ST.coin += curLvl.rw.m;
+        save();
+    }
+    toast("🎉 +" + curLvl.rw.c + "☕ +" + curLvl.rw.m + "🪙");
+    setTimeout(function() { goLevels(); }, 1500);
+}
+
+// ===== DUEL =====
+function goDuel() {
+    if (ST.done.length < 2) { toast("Пройди 2 рівні!"); return; }
+    show("scr-duel");
+    ST.duel++;
+    save();
+    initDuel();
+}
+
+function initDuel() {
+    dSc = {p:0, b:0};
+    document.getElementById("d-p-sc").textContent = "0";
+    document.getElementById("d-b-sc").textContent = "0";
+    document.getElementById("d-p-name").textContent = ST.name;
+    document.getElementById("d-p-ava").textContent = ST.ava;
+    nextDuel();
+}
+
+function nextDuel() {
+    if (dSc.p >= 3 || dSc.b >= 3) { endDuel(); return; }
+
+    var t = DUELS[Math.floor(Math.random() * DUELS.length)];
+    var box = document.getElementById("duel-box");
+    var h = "<div class='duel-box'>" +
+            "<div style='font-size:18px;font-weight:bold;margin-bottom:15px'>" + t.q + "</div>" +
+            "<div>";
+    t.ch.forEach(function(c, i) {
+        h += "<button class='choice-btn' onclick='dAns(" + i + "," + t.a + ")'>" + c + "</button>";
+    });
+    h += "</div></div>";
+    box.innerHTML = h;
+
+    var time = 30;
+    document.getElementById("timer-bar").style.width = "100%";
+    dTm = setInterval(function() {
+        time -= 0.1;
+        document.getElementById("timer-bar").style.width = (time / 30 * 100) + "%";
+        if (time <= 0) {
+            clearInterval(dTm);
+            dSc.b++;
+            document.getElementById("d-b-sc").textContent = dSc.b;
+            toast("Час вийшов!");
+            setTimeout(nextDuel, 1000);
+        }
+    }, 100);
+
+    setTimeout(function() {
+        if (time > 0) {
+            dSc.b++;
+            document.getElementById("d-b-sc").textContent = dSc.b;
+            toast("Бот відповів!");
+        }
+    }, 3500);
+}
+
+function dAns(pi, ca) {
+    clearInterval(dTm);
+    var btns = document.querySelectorAll(".choice-btn");
+    var ok = pi == ca;
+    btns[pi].style.background = ok ? "#28a745" : "#dc3545";
+    btns[pi].style.color = "white";
+    if (!ok) {
+        btns[ca].style.background = "#28a745";
+        btns[ca].style.color = "white";
+    }
+    if (ok) {
+        dSc.p++;
+        document.getElementById("d-p-sc").textContent = dSc.p;
+    }
+    setTimeout(nextDuel, 1200);
+}
+
+function endDuel() {
+    var won = dSc.p > dSc.b;
+    var box = document.getElementById("duel-box");
+    if (won) {
+        ST.win++;
+        ST.cof += 20;
+        ST.coin += 5;
+        ST.elo += 25;
+        toast("🏆 Перемога! +20☕ +5🪙");
+    } else {
+        ST.elo = Math.max(0, ST.elo - 10);
+        toast("😅 Поразка...");
+    }
+    save();
+    upd();
+    box.innerHTML = "<div style='text-align:center;padding:20px'>" +
+                    "<div style='font-size:60px'>" + (won ? "🏆" : "😅") + "</div>" +
+                    "<div style='font-size:24px;font-weight:bold'>" + (won ? "ПЕРЕМОГА!" : "ПОРАЗКА") + "</div>" +
+                    "<div style='font-size:20px'>" + dSc.p + " : " + dSc.b + "</div>" +
+                    "<button onclick='initDuel()'>🔄 Ще раз</button>" +
+                    "<button onclick='goMenu()' style='background:#FF6B35;color:white;margin-top:10px'>🏠 Меню</button>" +
+                    "</div>";
+}
+
+// ===== PROFILE =====
+function renProfile() {
+    document.getElementById("p-name").textContent = ST.name;
+    document.getElementById("p-ava").textContent = ST.ava;
+    document.getElementById("p-win").textContent = ST.win;
+    document.getElementById("p-duel").textContent = ST.duel;
+    document.getElementById("p-cof").textContent = ST.cof;
+    document.getElementById("p-coin").textContent = ST.coin;
+    document.getElementById("p-elo").textContent = ST.elo;
+    renShop();
+}
+
+function renShop() {
+    var g = document.getElementById("grid-shop");
+    g.innerHTML = "";
+    AVATARS.forEach(function(av) {
+        var own = ST.avas.includes(av.e);
+        var d = document.createElement("div");
+        d.className = "shop-item";
+        var txt = own ? (av.e == ST.ava ? "✓ Вибрано" : "✓ Є") : av.p + "🪙";
+        d.innerHTML = "<div style='font-size:40px'>" + av.e + "</div>" +
+                      "<div style='font-weight:bold;color:#FF6B35'>" + txt + "</div>";
+        if (!own) {
+            d.onclick = function() { buyAv(av); };
+        } else if (av.e != ST.ava) {
+            d.onclick = function() {
+                ST.ava = av.e;
+                save();
+                renProfile();
+                toast("Вибрано " + av.e);
+            };
+        }
+        g.appendChild(d);
+    });
+}
+
+function buyAv(av) {
+    if (ST.coin < av.p) { toast("Недостатньо монет!"); return; }
+    ST.coin -= av.p;
+    ST.avas.push(av.e);
+    ST.ava = av.e;
+    save();
+    renProfile();
+    toast("Куплено " + av.e + "!");
+}
+
+function chName() {
+    if (ST.coin < 10) { toast("Потрібно 10🪙"); return; }
+    ST.coin -= 10;
+    var n = prompt("Нове ім'я:", ST.name);
+    if (n && n.trim().length >= 2) {
+        ST.name = n.trim();
+        save();
+        renProfile();
+        toast("Ім'я змінено!");
+    } else {
+        ST.coin += 10;
+        save();
+    }
+}
+
+// ===== TOAST =====
+function toast(msg) {
+    var t = document.getElementById("toast");
+    t.textContent = msg;
+    t.style.display = "block";
+    setTimeout(function() { t.style.display = "none"; }, 2000);
+}
+
+// ===== START =====
+init();
+
+</script>
+</body>
+</html>
